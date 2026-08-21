@@ -64,7 +64,7 @@ A simple full-stack MERN web app to replace manual paper visitor logbooks. It le
    ```bash
    npm run dev
    ```
-   The backend will run on `https://visitor-pass-management-system-nq1z.onrender.com`.
+   The backend will run on `http://localhost:5000`
 
 ---
 
@@ -90,9 +90,9 @@ A simple full-stack MERN web app to replace manual paper visitor logbooks. It le
 
 ---
 
-## 🧪 Live Demo & Testing
+## Live Demo
 
-You can access the live application here: [Insert Vercel Link]
+## [Try it out here](https://visitor-pass-management-system-murex.vercel.app/) 
 
 To explore the pre-populated dashboard, use the following seeded demo accounts. (Alternatively, you can create a new account via the Sign Up page).
 
