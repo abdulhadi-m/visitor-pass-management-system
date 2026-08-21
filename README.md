@@ -90,16 +90,27 @@ A simple full-stack MERN web app to replace manual paper visitor logbooks. It le
 
 ---
 
-## The Full Flow
+## 🧪 Live Demo & Testing
 
-1. **Sign Up / Log In**: Create an account with the role `Admin` or `Security`.
-2. **Register a Visitor**: Fill in visitor details on the home page.
-3. **Book Appointment**: Select the visitor and request an appointment.
-4. **Approve (Admin)**: Go to **Admin Portal** (`/admin`) and click **Approve**.
-5. **Check Email / Pass**: The pass is generated and emailed to the visitor.
-6. **Check In / Out**: On the home page, the guard can check the visitor in and out.
-7. **Audit Logs**: Click **Audit Logs** in the top navigation to view the full activity history.
+You can access the live application here: [Insert Vercel Link]
 
+To explore the pre-populated dashboard, use the following seeded demo accounts. (Alternatively, you can create a new account via the Sign Up page).
+
+**Admin / Host Access (Full Dashboard & Approvals)**
+* Email: `admin@vpms.com`
+* Password: `Admin@123456`
+
+**Security Guard Access (Front Desk & Check-in)**
+* Email: `guard@vpms.com`
+* Password: `Guard@123456`
+
+### How to Try the Full Flow
+1. **Register a Visitor**: Log in as Security and fill in visitor details on the home page.
+2. **Book Appointment**: Select a 15-minute time slot for the visitor.
+3. **Approve (Admin)**: Log out, log in as Admin, go to **Admin Portal**, and click **Approve**.
+4. **Check Email / Pass**: A real email with a scannable PDF pass is sent to the visitor's email.
+5. **Check In / Out**: Log back in as Security to check the visitor in and out.
+6. **Audit Logs**: Log in as Admin to view the full tracking history on the Audit Logs page.
 ---
 
 ## Project Structure
