@@ -28,6 +28,7 @@ A simple full-stack MERN web app to replace manual paper visitor logbooks. It le
 ## Getting Started
 
 ### 1. Prerequisites
+
 - Node.js (v18 or higher recommended)
 - A MongoDB connection string (MongoDB Atlas or local MongoDB)
 
@@ -36,16 +37,19 @@ A simple full-stack MERN web app to replace manual paper visitor logbooks. It le
 ### 2. Backend Setup
 
 1. Open a terminal and go into the `backend` folder:
+
    ```bash
    cd backend
    ```
 
 2. Install backend dependencies:
+
    ```bash
    npm install
    ```
 
 3. Create a `.env` file in the `backend` directory:
+
    ```env
    PORT=5000
    MONGO_URI=your_mongodb_connection_string
@@ -60,18 +64,20 @@ A simple full-stack MERN web app to replace manual paper visitor logbooks. It le
    ```bash
    npm run dev
    ```
-   The backend will run on `http://localhost:5000`.
+   The backend will run on `https://visitor-pass-management-system-nq1z.onrender.com`.
 
 ---
 
 ### 3. Frontend Setup
 
 1. Open a new terminal and go into the `frontend` folder:
+
    ```bash
    cd frontend
    ```
 
 2. Install frontend dependencies:
+
    ```bash
    npm install
    ```
