@@ -5,8 +5,11 @@ const {registerVisitor, getVisitors, getVisitor} = require('../controller/visito
 const requireRole = require('../middleware/requireRole')
 const router = express.Router()
 
+const upload = require('../middleware/upload')
+
 // for protecting all the routes
 router.use(requireAuth)
+
 
 /**
  * Route:       /api/visitors/
@@ -15,7 +18,7 @@ router.use(requireAuth)
  * Access:      Protected 
  * Parameters:  None
  */
-router.post('/', requireRole('Admin','Security'), registerVisitor)
+router.post('/', upload.single('photo'), requireRole('Admin','Security'), registerVisitor)
 
 /**
  * Route:       /api/visitors/

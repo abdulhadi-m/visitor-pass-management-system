@@ -3,15 +3,15 @@ const VisitorModel = require('../models/visitorModel');
 
 // register a visitor
 exports.registerVisitor = async(req,res)=>{
-    const {name, email, phone, purpose, photo_url} = req.body;
+    const {name, email, phone, purpose} = req.body;
     
-    // copying from workout buddy for empty fields error
+    // workout buddy for empty fields error
     const emptyFields = []
     if(!name){emptyFields.push('Name')}
     if(!email){emptyFields.push('Email')}
     if(!phone){emptyFields.push('Phone Number')}
     if(!purpose){emptyFields.push('Purpose')}
-    if(!photo_url){emptyFields.push('Photo')}
+    if(!req.file){emptyFields.push('Photo')}
     if(emptyFields.length>0){
         return res.status(400).json({error: 
             'Please fill all the mandatory field!', emptyFields
@@ -19,8 +19,24 @@ exports.registerVisitor = async(req,res)=>{
     }
 
     try {
-        const visitor = await VisitorModel.create({name, email, phone, purpose, photo_url})
+        // // this is for "without" the photo
+        // const visitor = await VisitorModel.create({name, email, phone, purpose, photo_url})
+        // res.status(201).json(visitor)
+        
+        let photo_url = 'https://dummyimage.com/150x150'
+        if(req.file){
+            photo_url = `/uploads/${req.file.filename}`
+        }
+
+        const visitor = await VisitorModel.create({
+            name,
+            email,
+            phone,
+            purpose,
+            photo_url
+        })
         res.status(201).json(visitor)
+
     } catch (error) {
         res.status(400).json({error: error.message})
     }
@@ -39,7 +55,6 @@ exports.getVisitors = async(req,res)=>{
         res.status(200).json(visitors)
     } catch (error) {
         // res.status(404).json({error: 'No visitors found'})
-
         res.status(400).json({error: error.message})
     }
 }

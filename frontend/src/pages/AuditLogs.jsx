@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuthContext } from "../hooks/useAuthContext";
 
 const AuditLogs = () => {
@@ -33,9 +33,38 @@ const AuditLogs = () => {
     }
   }, [user]);
 
+  const exportToCSV = () => {
+    let csvContent = "data:text/csv;charset=utf-8,Visitor Name,Visitor Email,Host Name,Guard Name,Check In,Check Out,Status\n";
+
+    logs.forEach((log) => {
+      const visitor = log.passId?.appointmentId?.visitorId;
+      const host = log.passId?.appointmentId?.hostId;
+      const guard = log.guardId;
+      const isCheckedOut = Boolean(log.checkOut);
+
+      const vName = visitor?.name ? `"${visitor.name}"` : "Unknown";
+      const vEmail = visitor?.email ? `"${visitor.email}"` : "Unknown";
+      const hName = host?.name ? `"${host.name}"` : "N/A";
+      const gName = guard?.name ? `"${guard.name}"` : "Security";
+      
+      const checkIn = log.checkIn ? `"${new Date(log.checkIn).toLocaleString("en-GB")}"` : "—";
+      const checkOut = log.checkOut ? `"${new Date(log.checkOut).toLocaleString("en-GB")}"` : "On Premises";
+      const status = isCheckedOut ? "Checked Out" : "Checked In";
+
+      csvContent += `${vName},${vEmail},${hName},${gName},${checkIn},${checkOut},${status}\n`;
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `VPMS_Audit_Report.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-8 py-8">
-      {/* Header */}
       <div className="flex items-center justify-between pb-6 mb-6 border-b border-gray-200">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-gray-900">
@@ -45,21 +74,29 @@ const AuditLogs = () => {
             Track visitor check-ins, check-outs, and security activity
           </p>
         </div>
-        {logs && (
-          <span className="text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-3.5 py-1.5 rounded-full">
-            {logs.length} Total Logs
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {logs && (
+            <span className="text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-3.5 py-1.5 rounded-full">
+              {logs.length} Total Logs
+            </span>
+          )}
+          {logs && logs.length > 0 && (
+            <button
+              onClick={exportToCSV}
+              className="inline-flex items-center justify-center text-white bg-emerald-600 hover:bg-emerald-700 font-medium text-sm py-2 px-4 rounded-lg transition-colors cursor-pointer shadow-sm"
+            >
+              Download Logs
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Loading State */}
       {loading && (
         <p className="text-center py-8 text-gray-500 text-sm">
           Loading logs...
         </p>
       )}
 
-      {/* Empty State */}
       {!loading && logs.length === 0 && (
         <div className="bg-white rounded-xl border border-dashed border-gray-300 p-12 text-center text-gray-500 max-w-lg mx-auto">
           <p className="text-base font-semibold text-gray-800">No logs found</p>
@@ -69,7 +106,6 @@ const AuditLogs = () => {
         </div>
       )}
 
-      {/* Clean Table */}
       {!loading && logs.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">

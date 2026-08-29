@@ -9,7 +9,6 @@ exports.checkIn = async(req,res)=>{
     }    
     try{
         const pass = await passModel.findById(passId)
-        //  guardID
         const guardId = req.user._id;
         if(!pass){
             return res.status(404).json({error: 'Pass not found!'})
@@ -17,6 +16,13 @@ exports.checkIn = async(req,res)=>{
         if(new Date() > pass.validUntil ){
             return res.status(400).json({error: 'The pass has expired'})
         }
+
+        // Check for existing active check-in log to prevent duplicate logs
+        const existingActiveLog = await checklogModel.findOne({ passId, checkOut: null })
+        if(existingActiveLog || pass.status === 'Checked In'){
+            return res.status(400).json({error: 'Visitor is already checked in'})
+        }
+
         const checkInLog = await checklogModel.create({passId, guardId, checkIn: new Date()})
         await passModel.findByIdAndUpdate(passId, { status: 'Checked In' })
         res.status(201).json(checkInLog)

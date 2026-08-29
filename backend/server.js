@@ -1,14 +1,16 @@
 // importing required modules
 const express = require("express");
 const cors = require('cors')
-const dotenv = require('dotenv')
 const mongoose = require('mongoose')
+const dotenv = require('dotenv')
 
 const passRoutes = require('./routes/pass')
 const userRoutes = require('./routes/user')
 const logsRoutes = require('./routes/checklog')
 const visitorRoutes = require('./routes/visitor')
 const appointmentRoutes = require('./routes/appointment')
+
+const path = require('path')
 
 // configuring dotenv and initializing express app
 dotenv.config()
@@ -24,6 +26,8 @@ app.use('/api/users', userRoutes)
 app.use('/api/passes', passRoutes)
 app.use('/api/visitors', visitorRoutes)
 app.use('/api/appointments', appointmentRoutes)
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
 app.get('/', (req,res) =>{
     res.json({

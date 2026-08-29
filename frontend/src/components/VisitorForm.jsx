@@ -7,12 +7,14 @@ function VisitorForm({ onSuccess }) {
     const [email, setEmail] = useState('')
     const [phone, setPhone] = useState('')
     const [purpose, setPurpose] = useState('')
+    const [photo, setPhoto] = useState(null)
 
     const { createVisitor, isLoading, error } = useCreateVisitor()
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        const result = await createVisitor(name, email, phone, purpose)
+        const result = await createVisitor(name, email, phone, purpose, photo)
+
 
         if (result.success) {
             toast.success('Visitor details saved! Now select a time.') 
@@ -20,6 +22,10 @@ function VisitorForm({ onSuccess }) {
             setEmail('')
             setPhone('')
             setPurpose('')
+            setPhoto(null)
+                
+            // to reset the file input thingy 
+            document.getElementById('photo-upload').value = ''
             
             if (onSuccess) onSuccess(result.data._id)
         } else {
@@ -98,6 +104,20 @@ function VisitorForm({ onSuccess }) {
                 <option value="Personal / Guest Visit">Personal / Guest Visit</option>
                 <option value="Other">Other</option>
             </select>
+        </div>
+
+        <div>
+            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+                Visitor Photo
+            </label>
+            <input 
+                type="file"
+                id="photo-upload"
+                accept="image/*"
+                onChange={(e) => setPhoto(e.target.files[0])}
+                required
+                className="w-full px-3.5 py-2 bg-slate-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            />
         </div>
 
         <button 

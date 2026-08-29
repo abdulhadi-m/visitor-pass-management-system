@@ -1,9 +1,12 @@
 const passModel = require('../models/passModel')
 const appointmentModel = require('../models/appointmentModel')
+const visitorModel = require('../models/visitorModel')
+const userModel = require('../models/userModel')
 const mongoose = require('mongoose')
 const QRCode = require('qrcode')
 const PDFDocument = require('pdfkit')
 const nodemailer = require('nodemailer')
+const twilio = require('twilio')
 
 // Mock/Live Nodemailer Transporter Configuration
 const createTransporter = async () => {
@@ -157,14 +160,68 @@ exports.generatePass = async(req,res)=>{
             console.error('Failed to send visitor pass email:', emailError)
         }
 
-        res.status(201).json(pass)
+        // Send SMS Notification to Visitor via Twilio (Isolated Guardrail)
+        try {
+            const accountSid = process.env.TWILIO_ACCOUNT_SID;
+            const authToken = process.env.TWILIO_AUTH_TOKEN;
+            const twilioPhone = process.env.TWILIO_PHONE_NUMBER;
+            let visitorPhone = appointment.visitorId?.phone ? String(appointment.visitorId.phone).trim() : null;
+
+            if (accountSid && authToken && twilioPhone && visitorPhone) {
+                // Ensure E.164 country code format (+91 default)
+                if (!visitorPhone.startsWith('+')) {
+                    visitorPhone = `+91${visitorPhone}`;
+                }
+
+                const client = twilio(accountSid, authToken);
+                const message = await client.messages.create({
+                    body: `Hello ${appointment.visitorId.name}, your visitor pass for VPMS has been approved. Valid until: ${new Date(validUntil).toLocaleString()}. Please check your email for the pass PDF and QR code.`,
+                    from: twilioPhone,
+                    to: visitorPhone
+                });
+                console.log('Twilio SMS sent successfully, SID:', message.sid);
+            } else {
+                console.log('Twilio SMS skipped: missing environment variables or visitor phone number.');
+            }
+        } catch (smsError) {
+            console.error('Failed to send Twilio SMS notification:', smsError.message);
+        }
+
+        const populatedPass = await passModel.findById(pass._id).populate({
+            path: 'appointmentId',
+            populate: [
+                { path: 'visitorId' },
+                { path: 'hostId', select: 'name email' }
+            ]
+        })
+
+        res.status(201).json(populatedPass || pass)
     }
     catch(error){
         res.status(400).json({error: error.message})
     }
 }
 
-exports.getPasses = async(req,res)=>{
-    const passes = await passModel.find({ status: { $ne: 'Checked Out' } }).sort({createdAt: -1})
-    res.status(200).json(passes)
-}
+exports.getPasses = async (req, res) => {
+    try {
+        const passes = await passModel.find({ status: { $ne: 'Checked Out' } }).sort({ createdAt: -1 });
+
+        const resolvedPasses = await Promise.all(
+            passes.map(async (pass) => {
+                const appointment = await appointmentModel
+                    .findById(pass.appointmentId)
+                    .populate('visitorId')
+                    .populate('hostId', 'name email');
+
+                return {
+                    ...(pass.toObject ? pass.toObject() : pass),
+                    appointmentId: appointment || pass.appointmentId
+                };
+            })
+        );
+
+        res.status(200).json(resolvedPasses);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
