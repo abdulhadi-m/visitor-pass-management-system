@@ -23,10 +23,12 @@ const createTransporter = async () => {
         })
     }
 
-    // 2. Gmail / preset service configuration
+    // 2. Gmail SMTP configuration (explicit IPv4 host & port 465 SSL)
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
         return nodemailer.createTransport({
-            service: process.env.EMAIL_SERVICE || 'gmail',
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS

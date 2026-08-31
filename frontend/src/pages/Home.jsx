@@ -28,6 +28,14 @@ const Home = () => {
     });
   };
 
+  useEffect(() => {
+    if (!showScanner) {
+      stopCameraTracks();
+      const timer = setTimeout(stopCameraTracks, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [showScanner]);
+
   const openScanner = () => {
     isScanningRef.current = false;
     setShowScanner(true);
@@ -160,6 +168,7 @@ const Home = () => {
             
             <div className="rounded-xl overflow-hidden bg-black border-2 border-slate-100 shadow-inner">
               <QrReader
+                key={showScanner ? "active-scanner" : "idle"}
                 onResult={(result, error) => {
                   if (!!result && !isScanningRef.current) {
                     isScanningRef.current = true;
