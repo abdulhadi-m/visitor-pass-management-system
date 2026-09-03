@@ -2,23 +2,21 @@
 const express = require('express')
 const requireAuth = require('../middleware/requireAuth')
 const {registerVisitor, getVisitors, getVisitor} = require('../controller/visitorController')
-const requireRole = require('../middleware/requireRole')
 const router = express.Router()
 
 const upload = require('../middleware/upload')
 
-// for protecting all the routes
-router.use(requireAuth)
-
-
 /**
  * Route:       /api/visitors/
  * Method:      POST
- * Description: Register new visitors
- * Access:      Protected 
+ * Description: Register new or returning visitors (Public / Reception portal)
+ * Access:      Public
  * Parameters:  None
  */
-router.post('/', upload.single('photo'), requireRole('Admin','Security'), registerVisitor)
+router.post('/', upload.single('photo'), registerVisitor)
+
+// Protect subsequent routes for authorized staff
+router.use(requireAuth)
 
 /**
  * Route:       /api/visitors/
@@ -29,14 +27,13 @@ router.post('/', upload.single('photo'), requireRole('Admin','Security'), regist
  */
 router.get('/', getVisitors)
 
-
 /**
  * Route:       /api/visitors/:id
  * Method:      GET
- * Description: Get a single visitor by it's id
+ * Description: Get a single visitor by its id
  * Access:      Protected 
  * Parameters:  id
  */
-router.get('/:id',getVisitor)
+router.get('/:id', getVisitor)
 
 module.exports = router

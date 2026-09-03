@@ -4,8 +4,17 @@ const passSchema = new Schema({
     appointmentId:{
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-        unique: true,
         ref: 'Appointment'
+    },
+    visitorId:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Visitor'
+    },
+    hostName:{
+        type: String,
+    },
+    purpose:{
+        type: String,
     },
     qrCode:{
         type: String,
@@ -17,11 +26,11 @@ const passSchema = new Schema({
     },
     validUntil:{
         type: Date,
-        required: true
+        required: true,
     },
     status: {
         type: String,
-        enum: ['Issued', 'Checked In', 'Checked Out'],
+        enum: ['Pending', 'Approved', 'Issued', 'Checked In', 'Checked Out', 'Rejected'],
         default: 'Issued'
     }
 },{timestamps: true}) 

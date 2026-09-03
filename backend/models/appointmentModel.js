@@ -8,8 +8,16 @@ const appointmentSchema = new Schema({
     },
     hostId:{
         type: mongoose.Schema.Types.ObjectId,
-        required: true,
+        required: false,
         ref: 'User'
+    },
+    hostName:{
+        type: String,
+        default: 'Security Desk'
+    },
+    purpose:{
+        type: String,
+        default: 'Official Visit'
     },
     status:{
         type: String,
@@ -18,7 +26,8 @@ const appointmentSchema = new Schema({
     },
     dateTime:{
         type: Date,
-        required: true
+        required: true,
+        default: Date.now
     }
 },{timestamps: true}) 
 

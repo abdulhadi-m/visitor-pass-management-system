@@ -17,7 +17,7 @@ const checklogSchema = new Schema({
     },
     checkOut:{
         type: Date,
-        // Not required, because they haven't left yet!
+        default: null
     }
 },{timestamps: true}) 
     

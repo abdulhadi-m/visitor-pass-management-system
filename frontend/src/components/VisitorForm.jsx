@@ -2,32 +2,56 @@ import React, { useState } from 'react'
 import { useCreateVisitor } from '../hooks/useCreateVisitor'
 import toast from 'react-hot-toast'
 
-function VisitorForm({ onSuccess }) {
-    const [name, setName] = useState('')
-    const [email, setEmail] = useState('')
-    const [phone, setPhone] = useState('')
-    const [purpose, setPurpose] = useState('')
+function VisitorForm({ 
+    onSuccess, 
+    formData = { startTime: '' }, 
+    setFormData,
+    appointmentDetails = { startTime: '' },
+    setAppointmentDetails 
+}) {
+    const [name, setName] = useState(formData?.name || '')
+    const [email, setEmail] = useState(formData?.email || '')
+    const [phone, setPhone] = useState(formData?.phone || '')
+    const [purpose, setPurpose] = useState(formData?.purpose || '')
+    const [hostName, setHostName] = useState(formData?.hostName || appointmentDetails?.hostName || '')
+    const [startTime, setStartTime] = useState(formData?.startTime || appointmentDetails?.startTime || '')
     const [photo, setPhoto] = useState(null)
 
     const { createVisitor, isLoading, error } = useCreateVisitor()
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        const result = await createVisitor(name, email, phone, purpose, photo)
-
+        const result = await createVisitor(name, email, phone, purpose, photo, hostName)
 
         if (result.success) {
-            toast.success('Visitor details saved! Now select a time.') 
+            toast.success('Visitor pass requested! Pending Host/Admin approval.') 
             setName('')
             setEmail('')
             setPhone('')
             setPurpose('')
+            setHostName('')
+            setStartTime('')
             setPhoto(null)
                 
-            // to reset the file input thingy 
-            document.getElementById('photo-upload').value = ''
+            const fileInput = document.getElementById('photo-upload')
+            if (fileInput) fileInput.value = ''
             
-            if (onSuccess) onSuccess(result.data._id)
+            if (onSuccess) {
+                onSuccess({
+                    ...result.data,
+                    name,
+                    email,
+                    phone,
+                    purpose,
+                    hostName,
+                    startTime: startTime || formData?.startTime || appointmentDetails?.startTime || '',
+                    appointmentDetails: {
+                        startTime: startTime || formData?.startTime || appointmentDetails?.startTime || '',
+                        hostName,
+                        purpose
+                    }
+                })
+            }
         } else {
             toast.error(error || 'Failed to register visitor') 
         }
@@ -104,6 +128,20 @@ function VisitorForm({ onSuccess }) {
                 <option value="Personal / Guest Visit">Personal / Guest Visit</option>
                 <option value="Other">Other</option>
             </select>
+        </div>
+
+        <div>
+            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+                Host Name
+            </label>
+            <input 
+                type="text" 
+                value={hostName} 
+                onChange={(e) => setHostName(e.target.value)}
+                placeholder="e.g. Dr. Robert, HR Department, John Smith"
+                required
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all"
+            />
         </div>
 
         <div>

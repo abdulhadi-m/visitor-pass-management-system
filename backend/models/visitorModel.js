@@ -21,7 +21,7 @@ const visitorSchema = new Schema({
     },
     purpose:{
         type: String,
-        required: true,
+        required: false,
     },
     photo_url:{
         type: String,

@@ -13,7 +13,6 @@ const createTransporter = async () => {
     const emailUser = process.env.EMAIL_USER ? process.env.EMAIL_USER.trim() : null;
     const emailPass = process.env.EMAIL_PASS ? process.env.EMAIL_PASS.trim() : null;
 
-    // 1. Custom SMTP configuration (e.g. Brevo, SendGrid, Mailtrap, etc.)
     if (process.env.EMAIL_HOST && emailUser && emailPass) {
         return nodemailer.createTransport({
             host: process.env.EMAIL_HOST.trim(),
@@ -26,12 +25,11 @@ const createTransporter = async () => {
         })
     }
 
-    // 2. Gmail SMTP configuration (explicit IPv4 host & port 465 SSL)
     if (emailUser && emailPass) {
         return nodemailer.createTransport({
             host: 'smtp.gmail.com',
-            port: 465,
-            secure: true,
+            port: 587,
+            secure: false,
             auth: {
                 user: emailUser,
                 pass: emailPass
@@ -39,7 +37,6 @@ const createTransporter = async () => {
         })
     }
 
-    // 3. Zero-config fallback: Ethereal mock test account (prints clickable preview URL in terminal)
     const testAccount = await nodemailer.createTestAccount()
     return nodemailer.createTransport({
         host: 'smtp.ethereal.email',
@@ -52,9 +49,9 @@ const createTransporter = async () => {
     })
 }
 
-const generatePDFBase64 = (visitor, validUntil, qrCodeDataUrl) => {
+const generatePDFBase64 = (visitor, validUntil, qrCodeDataUrl, hostName = 'Security Desk', purpose = 'Official Visit') => {
     return new Promise((resolve) => {
-        const doc = new PDFDocument({ size: [250, 400], margin: 0 })
+        const doc = new PDFDocument({ size: [250, 420], margin: 0 })
         const buffers = []
 
         doc.on('data', buffers.push.bind(buffers))
@@ -62,17 +59,21 @@ const generatePDFBase64 = (visitor, validUntil, qrCodeDataUrl) => {
             const pdfData = Buffer.concat(buffers)
             resolve(`data:application/pdf;base64,${pdfData.toString('base64')}`)
         })
-        doc.rect(0, 0, 250, 60).fill('#1e3a8a')
-        doc.fillColor('#ffffff').fontSize(16).text('VISITOR PASS', 0, 22, { align: 'center' })
+        
+        doc.rect(0, 0, 250, 55).fill('#1e3a8a')
+        doc.fillColor('#ffffff').fontSize(16).text('VISITOR PASS', 0, 20, { align: 'center' })
 
-        doc.fillColor('#111827').fontSize(18).text(visitor.name, 0, 90, { align: 'center' })
-        doc.fillColor('#6b7280').fontSize(12).text(visitor.purpose, { align: 'center' })
+        // Name
+        doc.fillColor('#111827').fontSize(16).text(visitor.name, 10, 70, { align: 'center', width: 230 })
 
+        // QR Code
         const qrImageBuffer = Buffer.from(qrCodeDataUrl.split(',')[1], 'base64')
-        doc.image(qrImageBuffer, 50, 150, { width: 150 })
-
-        doc.fillColor('#6b7280').fontSize(10).text('Valid Until:', 0, 320, { align: 'center' })
-        doc.fillColor('#1e3a8a').fontSize(12).text(new Date(validUntil).toLocaleString(), { align: 'center' })
+        doc.image(qrImageBuffer, 55, 95, { width: 140 })
+        
+        doc.fillColor('#4b5563').fontSize(10).text(`Purpose: ${purpose}`, 10, 245, { align: 'center', width: 230 })
+        doc.fillColor('#1e3a8a').fontSize(11).text(`Host: ${hostName}`, 10, 265, { align: 'center', width: 230 })
+        doc.fillColor('#6b7280').fontSize(9).text('Valid Until:', 0, 290, { align: 'center' })
+        doc.fillColor('#b91c1c').fontSize(11).text(new Date(validUntil).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }), 0, 305, { align: 'center' })
 
         doc.end()
     })
@@ -85,7 +86,7 @@ exports.generatePass = async(req,res)=>{
         if(!mongoose.Types.ObjectId.isValid(appointmentId)){
             return res.status(400).json({error: `${appointmentId} Appointment not found`})
         }        
-        const appointment = await appointmentModel.findById(appointmentId).populate('visitorId')
+        const appointment = await appointmentModel.findById(appointmentId).populate('visitorId').populate('hostId', 'name email')
         if(!appointment){
             return res.status(400).json({error: 'Appointment not found'})
         }
@@ -95,15 +96,25 @@ exports.generatePass = async(req,res)=>{
         const qrData = JSON.stringify({appointmentId: appointment._id})
 
         const qrCode = await QRCode.toDataURL(qrData)
-
-        // Set expiration to 23:59:59 (11:59 PM) on the day of the scheduled visit
         const scheduledDate = new Date(appointment.dateTime || appointment.date)
         const validUntil = new Date(scheduledDate)
         validUntil.setHours(23, 59, 59, 999)
 
-        const pdfUrl = await generatePDFBase64(appointment.visitorId, validUntil, qrCode)
+        const hostName = appointment.hostName || appointment.hostId?.name || 'Security Desk'
+        const purpose = appointment.purpose || appointment.visitorId?.purpose || 'Official Visit'
 
-        const pass = await passModel.create({ appointmentId, qrCode, pdfUrl, validUntil })
+        const pdfUrl = await generatePDFBase64(appointment.visitorId, validUntil, qrCode, hostName, purpose)
+
+        const pass = await passModel.create({ 
+            appointmentId, 
+            visitorId: appointment.visitorId?._id,
+            hostName,
+            purpose,
+            qrCode, 
+            pdfUrl, 
+            validUntil,
+            status: 'Issued'
+        })
 
         // Send Email Notification to Visitor
         try {
@@ -131,8 +142,9 @@ exports.generatePass = async(req,res)=>{
                             
                             <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px; margin: 20px 0;">
                                 <h3 style="margin-top: 0; color: #1e3a8a; font-size: 15px;">Appointment Details</h3>
+                                <p style="margin: 6px 0; font-size: 14px;"><strong>Host:</strong> ${hostName}</p>
                                 <p style="margin: 6px 0; font-size: 14px;"><strong>Appointment Time:</strong> ${appointmentTimeFormatted}</p>
-                                <p style="margin: 6px 0; font-size: 14px;"><strong>Purpose of Visit:</strong> ${appointment.visitorId.purpose || 'Official Visit'}</p>
+                                <p style="margin: 6px 0; font-size: 14px;"><strong>Purpose of Visit:</strong> ${purpose}</p>
                                 <p style="margin: 6px 0; font-size: 14px;"><strong>Pass Valid Until:</strong> ${new Date(validUntil).toLocaleString()}</p>
                             </div>
 

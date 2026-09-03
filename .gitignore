@@ -1,0 +1,27 @@
+# Private Docs & Design Notes (Only root markdown files)
+/.FRONTEND.md
+/BACKEND.md
+/Context.md
+
+# Environment files
+.env
+.env.local
+*.env
+
+# Dependencies
+node_modules/
+
+# Local Uploads
+backend/uploads/
+uploads/
+
+# Build outputs & Logs
+dist/
+dist-ssr/
+*.log
+logs/
+
+# IDE & OS files
+.DS_Store
+.vscode/
+.idea/

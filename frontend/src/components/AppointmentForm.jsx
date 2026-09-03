@@ -3,12 +3,18 @@ import { useAuthContext } from '../hooks/useAuthContext'
 import { useCreateAppointment } from '../hooks/useCreateAppointment'
 import toast from 'react-hot-toast';
 
-const AppointmentForm = ({ visitorId, onComplete }) => {
+const AppointmentForm = ({ 
+    visitorId, 
+    onComplete, 
+    appointmentDetails = { startTime: '' }, 
+    formData = { startTime: '' } 
+}) => {
 
     const [date, setDate] = useState('')
     const [hour, setHour] = useState('09') 
     const [minute, setMinute] = useState('00')
     const [period, setPeriod] = useState('AM')
+    const [startTime, setStartTime] = useState(appointmentDetails?.startTime || formData?.startTime || '')
 
     const { user } = useAuthContext()
     const { createAppointment, isLoading, error } = useCreateAppointment()
@@ -40,7 +46,7 @@ const AppointmentForm = ({ visitorId, onComplete }) => {
         
         const formattedHour = militaryHour.toString().padStart(2, '0')
         const combinedDateTime = new Date(`${date}T${formattedHour}:${minute}:00`)
-        const hostId = user._id 
+        const hostId = user?._id || null 
 
         const result = await createAppointment(visitorId, hostId, combinedDateTime.toISOString())
 
@@ -50,7 +56,7 @@ const AppointmentForm = ({ visitorId, onComplete }) => {
             setHour('09')
             setMinute('00')
             setPeriod('AM')
-            if (onComplete) onComplete()
+            if (onComplete) onComplete(result.data || { dateTime: combinedDateTime.toISOString() })
         }
     }
 

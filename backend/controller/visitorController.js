@@ -1,41 +1,67 @@
 const mongoose = require('mongoose')
 const VisitorModel = require('../models/visitorModel');
+const AppointmentModel = require('../models/appointmentModel');
 
-// register a visitor
+// register a visitor (Find or Create to handle returning visitors without E11000 errors)
 exports.registerVisitor = async(req,res)=>{
-    const {name, email, phone, purpose} = req.body;
+    const {name, email, phone, purpose, hostName} = req.body;
     
-    // workout buddy for empty fields error
     const emptyFields = []
     if(!name){emptyFields.push('Name')}
     if(!email){emptyFields.push('Email')}
     if(!phone){emptyFields.push('Phone Number')}
-    if(!purpose){emptyFields.push('Purpose')}
-    if(!req.file){emptyFields.push('Photo')}
+    if(!req.file && !req.body.photo_url){emptyFields.push('Photo')}
     if(emptyFields.length>0){
         return res.status(400).json({error: 
-            'Please fill all the mandatory field!', emptyFields
+            'Please fill all the mandatory fields!', emptyFields
         })
     }
 
     try {
-        // // this is for "without" the photo
-        // const visitor = await VisitorModel.create({name, email, phone, purpose, photo_url})
-        // res.status(201).json(visitor)
-        
-        let photo_url = 'https://dummyimage.com/150x150'
+        let photo_url = req.body.photo_url || 'https://dummyimage.com/150x150'
         if(req.file){
             photo_url = `/uploads/${req.file.filename}`
         }
 
-        const visitor = await VisitorModel.create({
-            name,
-            email,
-            phone,
-            purpose,
-            photo_url
-        })
-        res.status(201).json(visitor)
+        const normalizedEmail = email.toLowerCase().trim();
+        let visitor = await VisitorModel.findOne({ email: normalizedEmail });
+
+        if (visitor) {
+            // Returning visitor: update profile and reuse existing identity _id
+            visitor.name = name;
+            visitor.phone = phone;
+            if (req.file) {
+                visitor.photo_url = photo_url;
+            }
+            if (purpose) {
+                visitor.purpose = purpose;
+            }
+            await visitor.save();
+        } else {
+            // New visitor: create identity document
+            visitor = await VisitorModel.create({
+                name,
+                email: normalizedEmail,
+                phone,
+                purpose: purpose || 'Official Visit',
+                photo_url
+            });
+        }
+
+        // Automatically create a new Pending Visit / Appointment referencing the visitor
+        const appointment = await AppointmentModel.create({
+            visitorId: visitor._id,
+            hostName: hostName || 'Security Desk',
+            purpose: purpose || visitor.purpose || 'Official Visit',
+            status: 'Pending',
+            dateTime: new Date()
+        });
+
+        res.status(201).json({
+            ...visitor.toObject(),
+            appointmentId: appointment._id,
+            appointment
+        });
 
     } catch (error) {
         res.status(400).json({error: error.message})

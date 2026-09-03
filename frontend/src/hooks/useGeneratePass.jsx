@@ -16,17 +16,14 @@ export const useGeneratePass = () => {
     setIsLoading(true);
     setError(null);
 
-    const response = await fetch(
-      "https://visitor-pass-management-system-nq1z.onrender.com/api/passes",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
-        },
-        body: JSON.stringify({ appointmentId }),
+    const response = await fetch("http://localhost:5000/api/passes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.token}`,
       },
-    );
+      body: JSON.stringify({ appointmentId }),
+    });
     const json = await response.json();
     if (!response.ok) {
       setIsLoading(false);

@@ -6,53 +6,52 @@ export const useCreateVisitor = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuthContext();
 
-  const createVisitor = async (name, email, phone, purpose, photo) => {
-    if (!user) {
-      setError("You must be loggin in");
-      return { success: false };
-    }
+  const createVisitor = async (name, email, phone, purpose, photo, hostName) => {
     setIsLoading(true);
     setError(null);
 
-    const formData = new FormData()
+    const formData = new FormData();
     formData.append("name", name);
     formData.append("email", email);
     formData.append("phone", phone);
     formData.append("purpose", purpose);
-    formData.append("photo", photo);
+    if (hostName) {
+      formData.append("hostName", hostName);
+    }
+    if (photo) {
+      formData.append("photo", photo);
+    }
 
     try {
-      const response = await fetch(
-        // "https://visitor-pass-management-system-nq1z.onrender.com/api/visitors",
-        "http://localhost:5000/api/visitors",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-          body: formData, 
-        }
-      )
+      const headers = {};
+      if (user && user.token) {
+        headers["Authorization"] = `Bearer ${user.token}`;
+      }
+
+      const response = await fetch("http://localhost:5000/api/visitors", {
+        method: "POST",
+        headers,
+        body: formData,
+      });
 
       const json = await response.json();
-      
+
       if (!response.ok) {
-        setError(json.error)
-        setIsLoading(false)
-        return { success: false }
+        setError(json.error);
+        setIsLoading(false);
+        return { success: false };
       }
-      
+
       if (response.ok) {
-        setIsLoading(false)
-        return { success: true, data: json }
+        setIsLoading(false);
+        return { success: true, data: json };
       }
-       
     } catch (err) {
-      setError("Failed to connect to the server")
+      setError("Failed to connect to the server");
       setIsLoading(false);
       return { success: false };
-    } 
-  }
-  
-  return { createVisitor, isLoading, error }
-}
+    }
+  };
+
+  return { createVisitor, isLoading, error };
+};

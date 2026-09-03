@@ -5,16 +5,18 @@ const {requestAppointment, updateAppointmentStatus, getPendingAppointment} = req
 
 
 const appointmentRouter = express.Router()
-appointmentRouter.use(requireAuth)
 
 /**
  * Route:       /api/appointments/
  * Method:      POST
- * Description: Create a new appointment
- * Access:      Protected 
+ * Description: Create or schedule an appointment
+ * Access:      Public
  * Parameters:  None
  */
-appointmentRouter.post('/', requireRole('Admin', 'Security'), requestAppointment)
+appointmentRouter.post('/', requestAppointment)
+
+// Protected routes for authorized staff
+appointmentRouter.use(requireAuth)
 
 /**
  * Route:       /api/appointments/:id

@@ -4,7 +4,7 @@ import { Toaster } from 'react-hot-toast'
 
 import {useAuthContext} from './hooks/useAuthContext'
 import Login from './pages/Login'
-import Home from './pages/Home'
+import PublicPortal from './pages/PublicPortal'
 import Navbar from './components/Navbar'
 import Signup from './pages/Signup'
 import AdminDashboard from './pages/AdminDashboard'
@@ -18,12 +18,22 @@ function App() {
         <Navbar />
         <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
         <Routes>
-          <Route path='/'          element = { user  ? <Home/>   : <Navigate to = "/login" />}/>
-          <Route path='/login'     element = { !user ? <Login/>  : <Navigate to = "/"      />}/>
-          <Route path='/signup'    element = { !user ? <Signup/> : <Navigate to = "/"      />}/>
+          {/* Public Visitor Registration Landing Page */}
+          <Route path='/' element={<PublicPortal />} />
 
-          <Route path='/admin'      element = {user && user.role === 'Admin' ? <AdminDashboard/> : <Navigate to="/" />}/>
-          <Route path='/audit-logs' element = {user && (user.role === 'Admin' || user.role === 'Security') ? <AuditLogs/> : <Navigate to="/" />}/>
+          {/* Auth Routes */}
+          <Route path='/login'  element={!user ? <Login /> : <Navigate to="/admin" />} />
+          <Route path='/signup' element={!user ? <Signup /> : <Navigate to="/admin" />} />
+
+          {/* Protected Security & Administration Hub */}
+          <Route 
+            path='/admin' 
+            element={user && (user.role === 'Admin' || user.role === 'Security') ? <AdminDashboard /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path='/audit-logs' 
+            element={user && (user.role === 'Admin' || user.role === 'Security') ? <AuditLogs /> : <Navigate to="/login" />} 
+          />
         </Routes>
       </BrowserRouter>
     </div>

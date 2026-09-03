@@ -7,34 +7,54 @@ const AuditLogs = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+
     const fetchLogs = async () => {
       try {
-        const response = await fetch(
-          "https://visitor-pass-management-system-nq1z.onrender.com/api/logs/all",
-          {
-            headers: {
-              Authorization: `Bearer ${user.token}`,
-            },
+        const response = await fetch("http://localhost:5000/api/logs/all", {
+          signal: controller.signal,
+          headers: {
+            Authorization: `Bearer ${user.token}`,
           },
-        );
+        });
         const json = await response.json();
-        if (response.ok) {
-          setLogs(json);
+        if (response.ok && isMounted) {
+          // De-duplicate any duplicate log entries by unique _id
+          const uniqueLogsMap = new Map();
+          if (Array.isArray(json)) {
+            json.forEach((log) => {
+              if (log && log._id && !uniqueLogsMap.has(log._id)) {
+                uniqueLogsMap.set(log._id, log);
+              }
+            });
+          }
+          setLogs(Array.from(uniqueLogsMap.values()));
         }
       } catch (error) {
-        console.error("Error fetching logs:", error);
+        if (error.name !== "AbortError") {
+          console.error("Error fetching logs:", error);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     if (user) {
       fetchLogs();
     }
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
   }, [user]);
 
   const exportToCSV = () => {
-    let csvContent = "data:text/csv;charset=utf-8,Visitor Name,Visitor Email,Host Name,Guard Name,Check In,Check Out,Status\n";
+    let csvContent =
+      "data:text/csv;charset=utf-8,Visitor Name,Visitor Email,Host Name,Guard Name,Check In,Check Out,Status\n";
 
     logs.forEach((log) => {
       const visitor = log.passId?.appointmentId?.visitorId;
@@ -46,9 +66,13 @@ const AuditLogs = () => {
       const vEmail = visitor?.email ? `"${visitor.email}"` : "Unknown";
       const hName = host?.name ? `"${host.name}"` : "N/A";
       const gName = guard?.name ? `"${guard.name}"` : "Security";
-      
-      const checkIn = log.checkIn ? `"${new Date(log.checkIn).toLocaleString("en-GB")}"` : "—";
-      const checkOut = log.checkOut ? `"${new Date(log.checkOut).toLocaleString("en-GB")}"` : "On Premises";
+
+      const checkIn = log.checkIn
+        ? `"${new Date(log.checkIn).toLocaleString("en-GB")}"`
+        : "—";
+      const checkOut = log.checkOut
+        ? `"${new Date(log.checkOut).toLocaleString("en-GB")}"`
+        : "On Premises";
       const status = isCheckedOut ? "Checked Out" : "Checked In";
 
       csvContent += `${vName},${vEmail},${hName},${gName},${checkIn},${checkOut},${status}\n`;
