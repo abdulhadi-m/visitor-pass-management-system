@@ -10,28 +10,31 @@ const twilio = require('twilio')
 
 // Mock/Live Nodemailer Transporter Configuration
 const createTransporter = async () => {
+    const emailUser = process.env.EMAIL_USER ? process.env.EMAIL_USER.trim() : null;
+    const emailPass = process.env.EMAIL_PASS ? process.env.EMAIL_PASS.trim() : null;
+
     // 1. Custom SMTP configuration (e.g. Brevo, SendGrid, Mailtrap, etc.)
-    if (process.env.EMAIL_HOST && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    if (process.env.EMAIL_HOST && emailUser && emailPass) {
         return nodemailer.createTransport({
-            host: process.env.EMAIL_HOST,
+            host: process.env.EMAIL_HOST.trim(),
             port: process.env.EMAIL_PORT ? Number(process.env.EMAIL_PORT) : 587,
             secure: process.env.EMAIL_SECURE === 'true',
             auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
+                user: emailUser,
+                pass: emailPass
             }
         })
     }
 
     // 2. Gmail SMTP configuration (explicit IPv4 host & port 465 SSL)
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    if (emailUser && emailPass) {
         return nodemailer.createTransport({
             host: 'smtp.gmail.com',
             port: 465,
             secure: true,
             auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
+                user: emailUser,
+                pass: emailPass
             }
         })
     }
@@ -93,7 +96,10 @@ exports.generatePass = async(req,res)=>{
 
         const qrCode = await QRCode.toDataURL(qrData)
 
-        const validUntil = new Date(new Date().getTime() + 24 * 60 * 60 * 1000)
+        // Set expiration to 23:59:59 (11:59 PM) on the day of the scheduled visit
+        const scheduledDate = new Date(appointment.dateTime || appointment.date)
+        const validUntil = new Date(scheduledDate)
+        validUntil.setHours(23, 59, 59, 999)
 
         const pdfUrl = await generatePDFBase64(appointment.visitorId, validUntil, qrCode)
 
@@ -164,9 +170,9 @@ exports.generatePass = async(req,res)=>{
 
         // Send SMS Notification to Visitor via Twilio (Isolated Guardrail)
         try {
-            const accountSid = process.env.TWILIO_ACCOUNT_SID;
-            const authToken = process.env.TWILIO_AUTH_TOKEN;
-            const twilioPhone = process.env.TWILIO_PHONE_NUMBER;
+            const accountSid = process.env.TWILIO_ACCOUNT_SID ? process.env.TWILIO_ACCOUNT_SID.trim() : null;
+            const authToken = process.env.TWILIO_AUTH_TOKEN ? process.env.TWILIO_AUTH_TOKEN.trim() : null;
+            const twilioPhone = process.env.TWILIO_PHONE_NUMBER ? process.env.TWILIO_PHONE_NUMBER.trim() : null;
             let visitorPhone = appointment.visitorId?.phone ? String(appointment.visitorId.phone).trim() : null;
 
             if (accountSid && authToken && twilioPhone && visitorPhone) {

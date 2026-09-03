@@ -51,7 +51,10 @@ const AdminDashboard = () => {
         });
 
         if (newStatus === "Approved") {
-          toast.success("Appointment approved! Digital pass is being generated.");
+          toast.success(
+            "Pass Approved & PDF Emailed! (Note: Twilio SMS delivery is currently restricted by TRAI/DLT carrier regulations for US trial numbers).",
+            { duration: 6000 }
+          );
           // Trigger heavy PDF generation & email sending asynchronously in the background
           generatePass(id).catch((err) => {
             console.error("Background pass generation failed:", err);
