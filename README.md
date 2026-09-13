@@ -99,7 +99,7 @@ SECRET=your_jwt_strong_secret_key
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_16_char_google_app_password
 
-# Twilio SMS Notifications (Optional / Sandbox)
+# Twilio SMS Notifications
 TWILIO_ACCOUNT_SID=ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 TWILIO_AUTH_TOKEN=your_twilio_auth_token
 TWILIO_PHONE_NUMBER=+1XXXXXXXXXX
