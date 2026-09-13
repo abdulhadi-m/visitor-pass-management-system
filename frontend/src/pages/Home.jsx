@@ -48,14 +48,17 @@ const Home = () => {
   };
 
   const handleCheckIn = async (passId) => {
-    const response = await fetch("http://localhost:5000/api/logs/check-in", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${user.token}`,
+    const response = await fetch(
+      "https://visitor-pass-management-system-nq1z.onrender.com/api/logs/check-in",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({ passId }),
       },
-      body: JSON.stringify({ passId }),
-    });
+    );
 
     if (response.ok) {
       setCheckedInPasses((prev) => [...prev, passId]);
@@ -74,14 +77,17 @@ const Home = () => {
   };
 
   const handleCheckOut = async (passId) => {
-    const response = await fetch("http://localhost:5000/api/logs/check-out", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${user.token}`,
+    const response = await fetch(
+      "https://visitor-pass-management-system-nq1z.onrender.com/api/logs/check-out",
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({ passId }),
       },
-      body: JSON.stringify({ passId }),
-    });
+    );
 
     if (response.ok) {
       dispatch({ type: "DELETE_PASS", payload: { _id: passId } });
@@ -94,11 +100,14 @@ const Home = () => {
 
   useEffect(() => {
     const fetchPasses = async () => {
-      const response = await fetch("http://localhost:5000/api/passes", {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
+      const response = await fetch(
+        "https://visitor-pass-management-system-nq1z.onrender.com/api/passes",
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
         },
-      });
+      );
       const json = await response.json();
       if (response.ok) {
         console.log("RAW PASSES DATA:", json);
@@ -306,7 +315,7 @@ const Home = () => {
                 const photoUrl = visitor?.photo_url
                   ? visitor.photo_url.startsWith("http")
                     ? visitor.photo_url
-                    : `http://localhost:5000${visitor.photo_url}`
+                    : `https://visitor-pass-management-system-nq1z.onrender.com${visitor.photo_url}`
                   : "https://dummyimage.com/150x150";
 
                 return (

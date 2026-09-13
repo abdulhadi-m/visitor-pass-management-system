@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuthContext } from "./useAuthContext";
+import { BASE_URL } from "../config";
 
 export const useCreateAppointment = () => {
   const [error, setError] = useState(null);
@@ -18,7 +19,7 @@ export const useCreateAppointment = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/appointments", {
+      const response = await fetch(`${BASE_URL}/api/appointments`, {
         method: "POST",
         headers,
         body: JSON.stringify({ visitorId, hostId, dateTime }),

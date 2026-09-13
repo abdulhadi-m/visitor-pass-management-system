@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuthContext } from "../hooks/useAuthContext";
+import { BASE_URL } from "../config";
 
 const AuditLogs = () => {
   const { user } = useAuthContext();
@@ -12,7 +13,7 @@ const AuditLogs = () => {
 
     const fetchLogs = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/logs/all", {
+        const response = await fetch(`${BASE_URL}/api/logs/all`, {
           signal: controller.signal,
           headers: {
             Authorization: `Bearer ${user.token}`,

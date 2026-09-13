@@ -13,7 +13,9 @@ const AdminDashboard = () => {
   const userRole = user?.role?.toLowerCase();
   const isSecurity = userRole?.includes("security");
   const canApprove = Boolean(
-    user && !isSecurity && (userRole === "admin" || userRole === "host" || userRole === "employee")
+    user &&
+    !isSecurity &&
+    (userRole === "admin" || userRole === "host" || userRole === "employee"),
   );
 
   const [activeTab, setActiveTab] = useState(canApprove ? "pending" : "active");
@@ -33,12 +35,12 @@ const AdminDashboard = () => {
     setLoadingPending(true);
     try {
       const response = await fetch(
-        "http://localhost:5000/api/appointments/pending",
+        "https://visitor-pass-management-system-nq1z.onrender.com/api/appointments/pending",
         {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
-        }
+        },
       );
       const json = await response.json();
       if (response.ok) {
@@ -56,11 +58,14 @@ const AdminDashboard = () => {
     if (!user) return;
     setLoadingPasses(true);
     try {
-      const response = await fetch("http://localhost:5000/api/passes", {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
+      const response = await fetch(
+        "https://visitor-pass-management-system-nq1z.onrender.com/api/passes",
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
         },
-      });
+      );
       const json = await response.json();
       if (response.ok) {
         dispatch({ type: "SET_PASSES", payload: json });
@@ -121,7 +126,7 @@ const AdminDashboard = () => {
     setProcessingId(id);
     try {
       const response = await fetch(
-        `http://localhost:5000/api/appointments/${id}`,
+        `https://visitor-pass-management-system-nq1z.onrender.com/api/appointments/${id}`,
         {
           method: "PATCH",
           headers: {
@@ -129,19 +134,19 @@ const AdminDashboard = () => {
             Authorization: `Bearer ${user.token}`,
           },
           body: JSON.stringify({ status: newStatus }),
-        }
+        },
       );
 
       if (response.ok) {
         // Optimistically remove from pending list
         setPendingAppointments((prev) =>
-          prev.filter((appointment) => appointment._id !== id)
+          prev.filter((appointment) => appointment._id !== id),
         );
 
         if (newStatus === "Approved") {
           toast.success(
             "Pass Approved & PDF Emailed! (Twilio SMS triggered for verified numbers)",
-            { duration: 5000 }
+            { duration: 5000 },
           );
 
           generatePass(id)
@@ -170,14 +175,17 @@ const AdminDashboard = () => {
     if (!passId || processingLogId === passId) return;
     setProcessingLogId(passId);
     try {
-      const response = await fetch("http://localhost:5000/api/logs/check-in", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
+      const response = await fetch(
+        "https://visitor-pass-management-system-nq1z.onrender.com/api/logs/check-in",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user.token}`,
+          },
+          body: JSON.stringify({ passId }),
         },
-        body: JSON.stringify({ passId }),
-      });
+      );
 
       if (response.ok) {
         dispatch({
@@ -202,14 +210,17 @@ const AdminDashboard = () => {
     if (!passId || processingLogId === passId) return;
     setProcessingLogId(passId);
     try {
-      const response = await fetch("http://localhost:5000/api/logs/check-out", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
+      const response = await fetch(
+        "https://visitor-pass-management-system-nq1z.onrender.com/api/logs/check-out",
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user.token}`,
+          },
+          body: JSON.stringify({ passId }),
         },
-        body: JSON.stringify({ passId }),
-      });
+      );
 
       if (response.ok) {
         dispatch({ type: "DELETE_PASS", payload: { _id: passId } });
@@ -257,7 +268,9 @@ const AdminDashboard = () => {
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl overflow-hidden flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
-                <h3 className="font-bold text-lg text-slate-900">Scan QR Code</h3>
+                <h3 className="font-bold text-lg text-slate-900">
+                  Scan QR Code
+                </h3>
                 <span className="relative flex h-2.5 w-2.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
@@ -284,7 +297,8 @@ const AdminDashboard = () => {
                       let scannedId = result?.text;
                       try {
                         const parsed = JSON.parse(scannedId);
-                        if (parsed.appointmentId) scannedId = parsed.appointmentId;
+                        if (parsed.appointmentId)
+                          scannedId = parsed.appointmentId;
                       } catch (e) {}
 
                       const matched = passes?.find((p) => {
@@ -298,7 +312,9 @@ const AdminDashboard = () => {
                       if (matched) {
                         handleCheckIn(matched._id);
                       } else {
-                        toast.error("No active pass matches the scanned QR code");
+                        toast.error(
+                          "No active pass matches the scanned QR code",
+                        );
                       }
                     } catch (scanErr) {
                       toast.error("Error reading QR data");
@@ -322,7 +338,7 @@ const AdminDashboard = () => {
 
       <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900"> 
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
             {canApprove ? "Visitor Pass Management" : "Visitor Pass Management"}
           </h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -337,7 +353,7 @@ const AdminDashboard = () => {
             onClick={openScanner}
             className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm cursor-pointer"
           >
-            Scan  Pass
+            Scan Pass
           </button>
         </div>
       </div>
@@ -367,7 +383,9 @@ const AdminDashboard = () => {
               : "border-transparent text-slate-500 hover:text-slate-700"
           }`}
         >
-          <span>{canApprove ? "Approved & Active Passes" : "Active Passes"}</span>
+          <span>
+            {canApprove ? "Approved & Active Passes" : "Active Passes"}
+          </span>
           <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full font-bold">
             {passes ? passes.length : 0}
           </span>
@@ -377,13 +395,17 @@ const AdminDashboard = () => {
       {canApprove && activeTab === "pending" && (
         <div>
           {loadingPending ? (
-            <div className="text-center py-12 text-slate-400">Loading pending requests...</div>
+            <div className="text-center py-12 text-slate-400">
+              Loading pending requests...
+            </div>
           ) : pendingAppointments.length === 0 ? (
             <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center text-slate-500 max-w-md mx-auto">
               <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3 text-xl font-bold">
                 ✓
               </div>
-              <p className="text-base font-semibold text-slate-800">All caught up!</p>
+              <p className="text-base font-semibold text-slate-800">
+                All caught up!
+              </p>
               <p className="text-sm text-slate-500 mt-1">
                 There are no pending visitor requests awaiting approval.
               </p>
@@ -395,11 +417,13 @@ const AdminDashboard = () => {
                 const photoSrc = visitor?.photo_url
                   ? visitor.photo_url.startsWith("http")
                     ? visitor.photo_url
-                    : `http://localhost:5000${visitor.photo_url}`
+                    : `https://visitor-pass-management-system-nq1z.onrender.com${visitor.photo_url}`
                   : "https://dummyimage.com/150x150";
 
                 const hostDisplay =
-                  appointment.hostName || appointment.hostId?.name || "Security Desk";
+                  appointment.hostName ||
+                  appointment.hostId?.name ||
+                  "Security Desk";
 
                 return (
                   <div
@@ -420,29 +444,46 @@ const AdminDashboard = () => {
                           <p className="text-base font-bold text-slate-900 truncate">
                             {visitor?.name || "Visitor"}
                           </p>
-                          <p className="text-xs text-slate-500 truncate">{visitor?.email}</p>
-                          <p className="text-xs text-slate-500">{visitor?.phone}</p>
+                          <p className="text-xs text-slate-500 truncate">
+                            {visitor?.email}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {visitor?.phone}
+                          </p>
                         </div>
                       </div>
 
                       {/* Visit Details Box */}
                       <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-xs text-slate-600 space-y-1.5 mb-4">
                         <div className="flex justify-between">
-                          <span className="text-slate-500 font-medium">Host:</span>
-                          <span className="font-semibold text-blue-900">{hostDisplay}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-500 font-medium">Purpose:</span>
-                          <span className="font-semibold text-slate-800">
-                            {appointment.purpose || visitor?.purpose || "Official Visit"}
+                          <span className="text-slate-500 font-medium">
+                            Host:
+                          </span>
+                          <span className="font-semibold text-blue-900">
+                            {hostDisplay}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-500 font-medium">Scheduled:</span>
+                          <span className="text-slate-500 font-medium">
+                            Purpose:
+                          </span>
+                          <span className="font-semibold text-slate-800">
+                            {appointment.purpose ||
+                              visitor?.purpose ||
+                              "Official Visit"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500 font-medium">
+                            Scheduled:
+                          </span>
                           <span className="text-slate-700">
-                            {new Date(appointment.dateTime).toLocaleDateString([], {
-                              dateStyle: "medium",
-                            })}
+                            {new Date(appointment.dateTime).toLocaleDateString(
+                              [],
+                              {
+                                dateStyle: "medium",
+                              },
+                            )}
                           </span>
                         </div>
                       </div>
@@ -450,14 +491,20 @@ const AdminDashboard = () => {
 
                     <div className="flex gap-2 pt-3 border-t border-slate-100">
                       <button
-                        onClick={() => handleStatusUpdate(appointment._id, "Approved")}
+                        onClick={() =>
+                          handleStatusUpdate(appointment._id, "Approved")
+                        }
                         disabled={processingId === appointment._id}
                         className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white font-semibold text-xs py-2.5 px-3 rounded-xl transition-colors cursor-pointer shadow-xs"
                       >
-                        {processingId === appointment._id ? "Approving..." : "Approve"}
+                        {processingId === appointment._id
+                          ? "Approving..."
+                          : "Approve"}
                       </button>
                       <button
-                        onClick={() => handleStatusUpdate(appointment._id, "Rejected")}
+                        onClick={() =>
+                          handleStatusUpdate(appointment._id, "Rejected")
+                        }
                         disabled={processingId === appointment._id}
                         className="bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-xs py-2.5 px-3 rounded-xl transition-colors cursor-pointer border border-rose-200"
                       >
@@ -475,13 +522,17 @@ const AdminDashboard = () => {
       {activeTab === "active" && (
         <div>
           {loadingPasses ? (
-            <div className="text-center py-12 text-slate-400">Loading active passes...</div>
+            <div className="text-center py-12 text-slate-400">
+              Loading active passes...
+            </div>
           ) : !passes || passes.length === 0 ? (
             <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center text-slate-500 max-w-md mx-auto">
               <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3 text-xl font-bold">
                 🎫
               </div>
-              <p className="text-base font-semibold text-slate-800">No active visitor passes</p>
+              <p className="text-base font-semibold text-slate-800">
+                No active visitor passes
+              </p>
               <p className="text-sm text-slate-500 mt-1">
                 Approve pending requests.
               </p>
@@ -504,7 +555,7 @@ const AdminDashboard = () => {
                 const photoSrc = visitor?.photo_url
                   ? visitor.photo_url.startsWith("http")
                     ? visitor.photo_url
-                    : `http://localhost:5000${visitor.photo_url}`
+                    : `https://visitor-pass-management-system-nq1z.onrender.com${visitor.photo_url}`
                   : "https://dummyimage.com/150x150";
 
                 return (
@@ -541,7 +592,9 @@ const AdminDashboard = () => {
                           <p className="text-sm font-bold text-slate-900 truncate">
                             {visitor?.name || "Visitor"}
                           </p>
-                          <p className="text-xs text-slate-500 truncate">{visitor?.phone}</p>
+                          <p className="text-xs text-slate-500 truncate">
+                            {visitor?.phone}
+                          </p>
                         </div>
                       </div>
 
@@ -559,15 +612,25 @@ const AdminDashboard = () => {
                       {/* Details */}
                       <div className="space-y-1.5 text-xs text-slate-600 bg-slate-50/70 p-3 rounded-xl border border-slate-100 mb-3">
                         <div className="flex justify-between">
-                          <span className="text-slate-500 font-medium">Host:</span>
-                          <span className="font-semibold text-slate-800">{host}</span>
+                          <span className="text-slate-500 font-medium">
+                            Host:
+                          </span>
+                          <span className="font-semibold text-slate-800">
+                            {host}
+                          </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-500 font-medium">Purpose:</span>
-                          <span className="font-semibold text-slate-800">{purpose}</span>
+                          <span className="text-slate-500 font-medium">
+                            Purpose:
+                          </span>
+                          <span className="font-semibold text-slate-800">
+                            {purpose}
+                          </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-500 font-medium">Valid Until:</span>
+                          <span className="text-slate-500 font-medium">
+                            Valid Until:
+                          </span>
                           <span className="font-semibold text-rose-700">
                             {new Date(pass.validUntil).toLocaleString([], {
                               dateStyle: "short",
@@ -589,7 +652,7 @@ const AdminDashboard = () => {
                         onClick={() =>
                           handleDownloadFile(
                             pass.pdfUrl,
-                            `Visitor_Pass_${visitor?.name || "VPMS"}.pdf`
+                            `Visitor_Pass_${visitor?.name || "VPMS"}.pdf`,
                           )
                         }
                         className="text-center text-slate-700 bg-slate-100 hover:bg-slate-200 font-medium text-xs py-1.5 rounded-lg transition-colors cursor-pointer"
@@ -600,7 +663,7 @@ const AdminDashboard = () => {
                         onClick={() =>
                           handleDownloadFile(
                             pass.qrCode,
-                            `QR_${visitor?.name || "VPMS"}.png`
+                            `QR_${visitor?.name || "VPMS"}.png`,
                           )
                         }
                         className="text-center text-slate-700 bg-slate-100 hover:bg-slate-200 font-medium text-xs py-1.5 rounded-lg transition-colors cursor-pointer"
@@ -612,9 +675,13 @@ const AdminDashboard = () => {
                     <div className="flex gap-2 border-t border-slate-100 pt-3">
                       <button
                         onClick={() => handleCheckIn(pass._id)}
-                        disabled={pass.status === "Checked In" || processingLogId === pass._id}
+                        disabled={
+                          pass.status === "Checked In" ||
+                          processingLogId === pass._id
+                        }
                         className={`flex-1 font-semibold text-xs py-2 rounded-xl border transition-colors ${
-                          pass.status === "Checked In" || processingLogId === pass._id
+                          pass.status === "Checked In" ||
+                          processingLogId === pass._id
                             ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
                             : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200 cursor-pointer shadow-xs"
                         }`}
@@ -622,8 +689,8 @@ const AdminDashboard = () => {
                         {processingLogId === pass._id
                           ? "Processing..."
                           : pass.status === "Checked In"
-                          ? "Checked In"
-                          : "Check In"}
+                            ? "Checked In"
+                            : "Check In"}
                       </button>
                       <button
                         onClick={() => handleCheckOut(pass._id)}
@@ -634,7 +701,9 @@ const AdminDashboard = () => {
                             : "bg-rose-50 hover:bg-rose-100 text-rose-700 cursor-pointer"
                         }`}
                       >
-                        {processingLogId === pass._id ? "Processing..." : "Check Out"}
+                        {processingLogId === pass._id
+                          ? "Processing..."
+                          : "Check Out"}
                       </button>
                     </div>
                   </div>

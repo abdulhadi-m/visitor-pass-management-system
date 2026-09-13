@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuthContext } from "./useAuthContext";
 import { usePassContext } from "./usePassContext";
+import { BASE_URL } from "../config";
 
 export const useGeneratePass = () => {
   const [error, setError] = useState(null);
@@ -15,8 +16,8 @@ export const useGeneratePass = () => {
     }
     setIsLoading(true);
     setError(null);
-
-    const response = await fetch("http://localhost:5000/api/passes", {
+https://visitor-pass-management-system-nq1z.onrender.com
+    const response = await fetch(`${BASE_URL}/api/passes`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

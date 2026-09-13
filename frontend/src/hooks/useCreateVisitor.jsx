@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuthContext } from "./useAuthContext";
+import { BASE_URL } from "../config";
 
 export const useCreateVisitor = () => {
   const [error, setError] = useState(null);
@@ -28,7 +29,7 @@ export const useCreateVisitor = () => {
         headers["Authorization"] = `Bearer ${user.token}`;
       }
 
-      const response = await fetch("http://localhost:5000/api/visitors", {
+      const response = await fetch(`${BASE_URL}/api/visitors`, {
         method: "POST",
         headers,
         body: formData,
