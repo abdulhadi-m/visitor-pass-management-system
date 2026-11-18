@@ -3,6 +3,8 @@
 A production-ready full-stack MERN (MongoDB, Express, React, Node.js) web application designed to replace physical paper visitor logbooks in commercial offices and institutions. It digitizes the entire visitor management lifecycle from public pre-registration, automated approval workflows, and digital QR badge generation, to live webcam-based gate scanning, role-based access control (RBAC), and historical audit logging.
 
 ---
+### Watch [Demo video](https://drive.google.com/file/d/1qZTkjb7QYSnQcu_7zxjAGRQKTT-O5sHk/view?usp=sharing)
+
 
 ## Live Deployments
 
@@ -11,8 +13,6 @@ A production-ready full-stack MERN (MongoDB, Express, React, Node.js) web applic
 - **Database:** MongoDB Atlas (Multi-cluster cloud database)
 
 ### Demo Credentials
-
-- ### **Click here for** [Demo Video](https://drive.google.com/file/d/1qZTkjb7QYSnQcu_7zxjAGRQKTT-O5sHk/view?usp=sharing)
 
 | Role               | Email             | Password       | Access Scope                                                                                                                                   |
 | :----------------- | :---------------- | :------------- | :--------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -99,7 +99,7 @@ SECRET=your_jwt_strong_secret_key
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_16_char_google_app_password
 
-# Twilio SMS Notifications
+# Twilio SMS Notifications 
 TWILIO_ACCOUNT_SID=ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 TWILIO_AUTH_TOKEN=your_twilio_auth_token
 TWILIO_PHONE_NUMBER=+1XXXXXXXXXX

@@ -16,7 +16,7 @@ export const useGeneratePass = () => {
     }
     setIsLoading(true);
     setError(null);
-https://visitor-pass-management-system-nq1z.onrender.com
+//last update
     const response = await fetch(`${BASE_URL}/api/passes`, {
       method: "POST",
       headers: {
