@@ -3,14 +3,14 @@ const express = require("express");
 const cors = require('cors')
 const mongoose = require('mongoose')
 const dotenv = require('dotenv')
+const fs = require('fs')
+const path = require('path')
 
 const passRoutes = require('./routes/pass')
 const userRoutes = require('./routes/user')
 const logsRoutes = require('./routes/checklog')
 const visitorRoutes = require('./routes/visitor')
 const appointmentRoutes = require('./routes/appointment')
-
-const path = require('path')
 
 // configuring dotenv and initializing express app
 dotenv.config()
@@ -20,6 +20,11 @@ const app = express()
 app.use(express.json())
 app.use(cors())
 
+// automatically create 'uploads' directory if it doesn't exist
+const uploadDir = path.join(__dirname, 'uploads')
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true })
+}
 
 // routes
 app.use('/api/logs', logsRoutes)
@@ -36,7 +41,7 @@ app.get('/', (req,res) =>{
     })
 })
 
-const PORT = process.env.PORT
+const PORT = process.env.PORT || 5000
 
 mongoose.connect(process.env.MONGO_URI).then(
     ()=>{
@@ -47,10 +52,3 @@ mongoose.connect(process.env.MONGO_URI).then(
     }
 )
 .catch((error)=>{console.log(error)})
-const fs = require('fs');
-const path = require('path');
-
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)){
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
